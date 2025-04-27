@@ -77,7 +77,7 @@ Run this playbook:
 bash
 Kopiera
 Redigera
-ansible-playbook -i hosts.ini docker_install.yml
+ansible-playbook -i hosts.ini docker_install.yml 
 ✅ 4. Install Kubernetes components (kubeadm, kubelet, kubectl) with Ansible
 Create k8s_install.yml:
 
