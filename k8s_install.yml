@@ -37,7 +37,7 @@
           - kubeadm
           - kubectl
         state: present
-        mark_hold: yes
+        #mark_hold: yes
 
     - name: Enable kubelet
       systemd:
