@@ -123,7 +123,7 @@ Redigera
           - kubeadm
           - kubectl
         state: present
-        mark_hold: yes
+
 
     - name: Enable kubelet
       systemd:
@@ -134,7 +134,7 @@ Run this playbook:
 bash
 Kopiera
 Redigera
-ansible-playbook -i hosts.ini k8s_install.yml
+ansible-playbook -i hosts.ini k8s_install.yml --ask-become-pass
 ✅ 5. Initialize Kubernetes Cluster (Using kubeadm)
 On Master node (k8s-master-01) run:
 
