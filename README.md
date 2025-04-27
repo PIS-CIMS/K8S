@@ -1,9 +1,5 @@
 # K8S
 
-ansible-playbook -i hosts.ini docker_install.yml --ask-become-pass
-
-ansible-playbook -i hosts.ini k8s_install.yml --ask-become-pass
-
 🚀 Detailed Implementation Steps:
 ✅ 1. Provision Infrastructure
 Ensure you have at least 3 machines (can be cloud VMs like AWS EC2, Azure, DigitalOcean, or local VMs with VirtualBox/VMware):
