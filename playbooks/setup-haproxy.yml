@@ -1,9 +1,0 @@
-frontend kubernetes-api
-    bind *:6443
-    default_backend kube-masters
-
-backend kube-masters
-    balance roundrobin
-    server master1 10.10.10.230:6443 check
-    server master2 10.10.10.231:6443 check
-    server master3 10.10.10.232:6443 check
