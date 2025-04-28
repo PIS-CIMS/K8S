@@ -3,12 +3,14 @@
     path: /etc/kubernetes/admin.conf
   register: kubeadm_init_check
 
-- name: Initialize Kubernetes Master (only if not already initialized)
+- name: Initialize Kubernetes first Master (only on first master)
   shell: |
     kubeadm init --control-plane-endpoint "k8s-master-01:6443" --upload-certs --pod-network-cidr=10.244.0.0/16
   args:
     creates: /etc/kubernetes/admin.conf
-  when: not kubeadm_init_check.stat.exists
+  when: 
+    - not kubeadm_init_check.stat.exists
+    - inventory_hostname == groups['k8s-master'][0]
 
 - name: Setup kubeconfig for root
   shell: |
@@ -22,9 +24,8 @@
     kubectl apply -f https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml
   when: inventory_hostname == groups['k8s-master'][0]
 
-- name: Generate kubeadm join command (only on first master)
-  shell: |
-    kubeadm token create --print-join-command
+- name: Generate kubeadm join command for workers
+  shell: kubeadm token create --print-join-command
   register: join_command
   when: inventory_hostname == groups['k8s-master'][0]
 
@@ -32,3 +33,20 @@
   set_fact:
     worker_join_command: "{{ join_command.stdout }}"
   when: inventory_hostname == groups['k8s-master'][0]
+
+- name: Generate kubeadm control-plane join command
+  shell: |
+    kubeadm token create --print-join-command --certificate-key $(kubeadm init phase upload-certs --upload-certs | tail -1)
+  register: cp_join_command
+  when: inventory_hostname == groups['k8s-master'][0]
+
+- name: Save control-plane join command
+  set_fact:
+    control_plane_join_command: "{{ cp_join_command.stdout }}"
+  when: inventory_hostname == groups['k8s-master'][0]
+
+- name: Join other masters to control plane
+  shell: "{{ hostvars[groups['k8s-master'][0]]['control_plane_join_command'] }} --control-plane"
+  when: 
+    - inventory_hostname != groups['k8s-master'][0]
+    - not kubeadm_init_check.stat.exists
