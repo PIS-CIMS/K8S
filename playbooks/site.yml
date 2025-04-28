@@ -6,7 +6,7 @@
 - hosts: k8s-master
   become: yes
   roles:
-    - master
+   - master
 
 - hosts: k8s-workers
   become: yes
