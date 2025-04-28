@@ -1,7 +1,7 @@
 - hosts: k8s-cluster
   become: yes
   roles:
-    - common
+   - common
 
 - hosts: k8s-master
   become: yes
