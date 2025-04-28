@@ -1,0 +1,6 @@
+- name: Join Kubernetes Worker Node
+  shell: |
+    kubeadm join 10.10.10.230:6443 --token <your-token> --discovery-token-ca-cert-hash sha256:<your-hash>
+  args:
+    executable: /bin/bash
+  when: "'k8s-worker' in group_names"

@@ -1,0 +1,34 @@
+- name: Check if Kubernetes is already initialized
+  stat:
+    path: /etc/kubernetes/admin.conf
+  register: kubeadm_init_check
+
+- name: Initialize Kubernetes Master (only if not already initialized)
+  shell: |
+    kubeadm init --control-plane-endpoint "k8s-master-01:6443" --upload-certs --pod-network-cidr=10.244.0.0/16
+  args:
+    creates: /etc/kubernetes/admin.conf
+  when: not kubeadm_init_check.stat.exists
+
+- name: Setup kubeconfig for root
+  shell: |
+    mkdir -p $HOME/.kube
+    cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+    chown $(id -u):$(id -g) $HOME/.kube/config
+  when: kubeadm_init_check.stat.exists
+
+- name: Install Flannel CNI (only on first master)
+  shell: |
+    kubectl apply -f https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml
+  when: inventory_hostname == groups['k8s-master'][0]
+
+- name: Generate kubeadm join command (only on first master)
+  shell: |
+    kubeadm token create --print-join-command
+  register: join_command
+  when: inventory_hostname == groups['k8s-master'][0]
+
+- name: Save join command for workers
+  set_fact:
+    worker_join_command: "{{ join_command.stdout }}"
+  when: inventory_hostname == groups['k8s-master'][0]
