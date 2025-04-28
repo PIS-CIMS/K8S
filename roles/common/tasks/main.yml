@@ -1,0 +1,45 @@
+- name: Update APT packages
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Install basic tools
+  apt:
+    name:
+      - curl
+      - apt-transport-https
+      - ca-certificates
+      - software-properties-common
+      - gnupg
+    state: present
+
+- name: Install Docker
+  shell: |
+    apt-get remove docker docker-engine docker.io containerd runc || true
+    curl -fsSL https://get.docker.com | bash
+    systemctl enable docker
+    systemctl start docker
+
+- name: Add Kubernetes apt repo
+  shell: |
+    curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | gpg --dearmor -o /usr/share/keyrings/kubernetes-archive-keyring.gpg
+    echo "deb [signed-by=/usr/share/keyrings/kubernetes-archive-keyring.gpg] https://apt.kubernetes.io/ kubernetes-xenial main" > /etc/apt/sources.list.d/kubernetes.list
+  args:
+    executable: /bin/bash
+
+- name: Install kubelet, kubeadm, and kubectl
+  apt:
+    name:
+      - kubelet
+      - kubeadm
+      - kubectl
+    update_cache: yes
+    state: present
+
+- name: Hold Kubernetes packages
+  apt:
+    name:
+      - kubelet
+      - kubeadm
+      - kubectl
+    state: hold
