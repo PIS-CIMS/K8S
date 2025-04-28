@@ -1,0 +1,14 @@
+- name: Install Docker on all nodes
+  hosts: all
+  become: true
+  tasks:
+    - name: Install dependencies
+      zypper:
+        name: ['docker']
+        state: present
+
+    - name: Enable and start Docker
+      systemd:
+        name: docker
+        state: started
+        enabled: true
