@@ -1,27 +1,35 @@
 ---
 - hosts: k8s-cluster
   become: true
+
   tasks:
-    - name: Disable Swap
+    - name: Disable swap (important for Kubernetes)
       shell: |
-        swapoff -a && sed -i '/ swap / s/^/#/' /etc/fstab
+        swapoff -a
+        sed -i '/ swap / s/^/#/' /etc/fstab
 
     - name: Install Kubernetes prerequisites
       apt:
         name:
           - apt-transport-https
           - curl
+          - gpg
+        state: present
+        update_cache: yes
+
+    - name: Download Kubernetes GPG key
+      get_url:
+        url: https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key
+        dest: /usr/share/keyrings/kubernetes-apt-keyring.gpg
+        mode: '0644'
+
+    - name: Add Kubernetes apt repository
+      apt_repository:
+        repo: "deb [signed-by=/usr/share/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /"
+        filename: kubernetes
         state: present
 
-    - name: Add Kubernetes GPG key
-      shell: |
-        curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.29/deb/Release.key | gpg --dearmor -o /usr/share/keyrings/kubernetes-apt-keyring.gpg
-
-    - name: Add Kubernetes repo
-      shell: |
-        echo "deb [signed-by=/usr/share/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.29/deb/ /" | sudo tee /etc/apt/sources.list.d/kubernetes.list
-
-    - name: Install kubeadm, kubelet, kubectl
+    - name: Install Kubernetes packages
       apt:
         name:
           - kubelet
@@ -30,16 +38,12 @@
         state: present
         update_cache: yes
 
-    - name: Hold Kubernetes packages
-      apt:
-        name:
-          - kubelet
-          - kubeadm
-          - kubectl
-        state: present
-        #mark_hold: yes
+    - name: Hold Kubernetes packages (prevent accidental upgrades)
+      shell: |
+        apt-mark hold kubelet kubeadm kubectl
 
-    - name: Enable kubelet
+    - name: Enable and start kubelet service
       systemd:
         name: kubelet
         enabled: yes
+        state: started
