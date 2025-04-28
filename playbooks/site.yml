@@ -11,4 +11,4 @@
 - hosts: k8s-workers
   become: yes
   roles:
-    - worker
+  - worker
