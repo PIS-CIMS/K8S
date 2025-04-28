@@ -9,3 +9,7 @@ I0428 14:11:55.137964   65215 version.go:256] remote version is much newer: v1.3
 [upload-certs] Storing the certificates in Secret "kubeadm-certs" in the "kube-system" Namespace
 [upload-certs] Using certificate key:
 60ca471029273f372760ae5ef404142e1930aab862ac87f04a843fc9be48f57d
+
+
+
+sudo kubeadm join k8s-master-01:6443 --token abcdef.0123456789abcdef --discovery-token-ca-cert-hash sha256:aaaabbbbccccdddd... --control-plane --certificate-key 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
