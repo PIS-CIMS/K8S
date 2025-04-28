@@ -15,5 +15,5 @@ sudo kubeadm join k8s-master-01:6443 --token bbnk3g.a1zdupam1yl1hm2l --discovery
 
 ---- WORKER
 
-sudo kubeadm join k8s-master-01:6443 --token bbnk3g.a1zdupam1yl1hm2l --discovery-token-ca-cert-hash sha256:aaaabbbbccccdddd...
+sudo kubeadm join k8s-master-01:6443 --token bbnk3g.a1zdupam1yl1hm2l --discovery-token-ca-cert-hash sha256:fa89682fa81c0f6f5a02ffa13a7d9fe09d71379abe4cb55ac684c253c7fce18f
 
