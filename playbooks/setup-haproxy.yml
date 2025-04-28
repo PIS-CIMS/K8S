@@ -4,6 +4,6 @@ frontend kubernetes-api
 
 backend kube-masters
     balance roundrobin
-    server master1 192.168.56.101:6443 check
+    server master1 10.10.10:6443 check
     server master2 192.168.56.102:6443 check
     server master3 192.168.56.103:6443 check
