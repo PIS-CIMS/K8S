@@ -1,0 +1,16 @@
+- name: Create ansible user
+  hosts: all
+  become: true
+  tasks:
+    - name: Create a user called ansible
+      user:
+        name: ansible
+        groups: wheel
+        shell: /bin/bash
+        state: present
+
+    - name: Set authorized key for ansible user
+      authorized_key:
+        user: ansible
+        state: present
+        key: "{{ lookup('file', '~/.ssh/id_rsa.pub') }}"
