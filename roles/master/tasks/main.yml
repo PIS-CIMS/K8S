@@ -1,0 +1,18 @@
+- name: Initialize Kubernetes Master
+  shell: |
+    kubeadm init --control-plane-endpoint "k8s-master-01:6443" --upload-certs --pod-network-cidr=10.244.0.0/16
+  args:
+    creates: /etc/kubernetes/admin.conf
+
+- name: Setup kubeconfig for root
+  shell: |
+    mkdir -p $HOME/.kube
+    cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+    chown $(id -u):$(id -g) $HOME/.kube/config
+
+- name: Install Flannel CNI
+  shell: |
+    kubectl apply -f https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml
+  args:
+    executable: /bin/bash
+  when: inventory_hostname == "k8s-master-01"
