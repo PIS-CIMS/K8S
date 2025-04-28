@@ -1,8 +1,5 @@
 kubeadm join k8s-master-01:6443 --token bbnk3g.a1zdupam1yl1hm2l --discovery-token-ca-cert-hash sha256:fa89682fa81c0f6f5a02ffa13a7d9fe09d71379abe4cb55ac684c253c7fce18f
 
-sudo kubeadm join k8s-master-01:6443 --token abcdef.0123456789abcdef --discovery-token-ca-cert-hash sha256:aaaabbbbccccdddd... --control-plane --certificate-key 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
-
-
 
 sudo kubeadm init phase upload-certs --upload-certs
 I0428 14:11:55.137964   65215 version.go:256] remote version is much newer: v1.33.0; falling back to: stable-1.29
