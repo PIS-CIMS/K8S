@@ -1,0 +1,83 @@
+- name: Prepare Kubernetes worker nodes
+  hosts: k8s-workers
+  become: yes
+  tasks:
+
+    - name: Disable swap
+      command: swapoff -a
+
+    - name: Permanently disable swap in fstab
+      replace:
+        path: /etc/fstab
+        regexp: '^([^#].*\sswap\s.*)$'
+        replace: '# \1'
+
+    - name: Create containerd config directory
+      file:
+        path: /etc/containerd
+        state: directory
+
+    - name: Generate default containerd config
+      shell: containerd config default > /etc/containerd/config.toml
+      args:
+        creates: /etc/containerd/config.toml
+
+    - name: Set SystemdCgroup to true in containerd config
+      replace:
+        path: /etc/containerd/config.toml
+        regexp: 'SystemdCgroup = false'
+        replace: 'SystemdCgroup = true'
+
+    - name: Restart containerd service
+      systemd:
+        name: containerd
+        state: restarted
+        enabled: yes
+
+    - name: Ensure kernel modules are loaded
+      modprobe:
+        name: "{{ item }}"
+        state: present
+      loop:
+        - overlay
+        - br_netfilter
+
+    - name: Set sysctl parameters for Kubernetes networking
+      copy:
+        dest: /etc/sysctl.d/k8s.conf
+        content: |
+          net.bridge.bridge-nf-call-iptables = 1
+          net.bridge.bridge-nf-call-ip6tables = 1
+          net.ipv4.ip_forward = 1
+
+    - name: Apply sysctl settings
+      command: sysctl --system
+
+    - name: Wait for containerd socket
+      wait_for:
+        path: /run/containerd/containerd.sock
+        state: present
+        timeout: 15
+
+    - name: Fetch kubeadm join command from first master
+      shell: kubeadm token create --print-join-command
+      register: kube_join_cmd
+      delegate_to: "{{ groups['k8s-master'][0] }}"
+      run_once: true
+
+    - name: Save kubeadm join command as a fact
+      set_fact:
+        kube_join_command: "{{ kube_join_cmd.stdout }}"
+
+    - name: Create join script
+      copy:
+        dest: /tmp/kubeadm-join.sh
+        content: |
+          #!/bin/bash
+          {{ kube_join_command }}
+        mode: '0755'
+
+    - name: Run join script if node is not already joined
+      command: /tmp/kubeadm-join.sh
+      args:
+        creates: /etc/kubernetes/kubelet.conf
